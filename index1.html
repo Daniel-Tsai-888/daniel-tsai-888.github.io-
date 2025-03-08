@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <title>占星骰子</title>
+  <!-- Google 字體，可依需求替換 -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;700&display=swap" rel="stylesheet">
+
+  <style>
+    /* 全域樣式 */
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: 'Noto Sans TC', sans-serif;
+      background-color: #FFFBEC; /* 舒適淺黃色背景 */
+    }
+
+    .container {
+      max-width: 700px;
+      margin: 60px auto;
+      padding: 20px;
+      background-color: #FFFEF6; /* 更淺的黃白色 */
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    }
+
+    /* 標題：僅顯示 占星骰子 */
+    h1 {
+      text-align: center;
+      margin-bottom: 20px;
+      color: #A76E27; /* 暖咖啡+黃調 */
+    }
+
+    /* 按鈕 */
+    .roll-btn {
+      display: inline-block;
+      padding: 12px 24px;
+      font-size: 18px;
+      color: #FFFFFF;
+      background-color: #E6AA40; /* 黃橘色 */
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: background-color 0.2s ease;
+    }
+    .roll-btn:hover {
+      background-color: #cc9030;
+    }
+
+    /* 結果區容器 */
+    .result-container {
+      display: flex;
+      justify-content: space-evenly;
+      gap: 16px;
+      margin-top: 24px;
+      text-align: center;
+    }
+
+    /* 三個區塊 (行星、星座、宮位) */
+    .result-box {
+      flex: 1;
+      background-color: #FFF3D1; /* 舒適明亮黃 */
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+      min-height: 80px;
+    }
+    .result-box h3 {
+      margin: 0;
+      color: #B5792A;
+      font-size: 20px;
+      margin-bottom: 8px;
+    }
+    .result-box p {
+      margin: 0;
+      color: #333;
+      font-size: 18px;
+      font-weight: 500;
+    }
+
+    /* 頁面底部 */
+    .footer {
+      margin-top: 40px;
+      text-align: center;
+      font-size: 14px;
+      color: #999;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>占星骰子</h1>
+    <div style="text-align: center;">
+      <button class="roll-btn" id="rollDiceButton">擲骰</button>
+    </div>
+
+    <!-- 結果容器 (三個區塊) -->
+    <div class="result-container">
+      <!-- 行星區塊 -->
+      <div class="result-box" id="planetBlock">
+        <h3>行星</h3>
+        <p>？</p>
+      </div>
+      <!-- 星座區塊 -->
+      <div class="result-box" id="zodiacBlock">
+        <h3>星座</h3>
+        <p>？</p>
+      </div>
+      <!-- 宮位區塊 -->
+      <div class="result-box" id="houseBlock">
+        <h3>宮位</h3>
+        <p>？</p>
+      </div>
+    </div>
+
+    <div class="footer">
+      由 <strong>十號出口</strong> 提供
+    </div>
+  </div>
+
+  <script>
+    /*****************************************
+     * 1. 資料定義：行星、星座、宮位
+     *****************************************/
+    const planetData = [
+      { name: "太陽",   symbol: "☉" },
+      { name: "月亮",   symbol: "☾" },
+      { name: "水星",   symbol: "☿" },
+      { name: "金星",   symbol: "♀" },
+      { name: "火星",   symbol: "♂" },
+      { name: "木星",   symbol: "♃" },
+      { name: "土星",   symbol: "♄" },
+      { name: "天王星", symbol: "♅" },
+      { name: "海王星", symbol: "♆" },
+      { name: "冥王星", symbol: "♇" },
+      { name: "北交點", symbol: "☊" },
+      { name: "南交點", symbol: "☋" }
+    ];
+
+    const zodiacData = [
+      { name: "牡羊座", symbol: "♈" },
+      { name: "金牛座", symbol: "♉" },
+      { name: "雙子座", symbol: "♊" },
+      { name: "巨蟹座", symbol: "♋" },
+      { name: "獅子座", symbol: "♌" },
+      { name: "處女座", symbol: "♍" },
+      { name: "天秤座", symbol: "♎" },
+      { name: "天蠍座", symbol: "♏" },
+      { name: "射手座", symbol: "♐" },
+      { name: "魔羯座", symbol: "♑" },
+      { name: "水瓶座", symbol: "♒" },
+      { name: "雙魚座", symbol: "♓" }
+    ];
+
+    const houseData = [
+      { name: "第1宮" },
+      { name: "第2宮" },
+      { name: "第3宮" },
+      { name: "第4宮" },
+      { name: "第5宮" },
+      { name: "第6宮" },
+      { name: "第7宮" },
+      { name: "第8宮" },
+      { name: "第9宮" },
+      { name: "第10宮" },
+      { name: "第11宮" },
+      { name: "第12宮" }
+    ];
+
+    /*****************************************
+     * 2. 擲骰邏輯：隨機選擇 (行星 / 星座 / 宮位)
+     *****************************************/
+    function rollAstrologyDice() {
+      const randomPlanet = planetData[Math.floor(Math.random() * planetData.length)];
+      const randomZodiac = zodiacData[Math.floor(Math.random() * zodiacData.length)];
+      const randomHouse  = houseData[Math.floor(Math.random() * houseData.length)];
+
+      // 更新行星區塊
+      document.getElementById("planetBlock").innerHTML = `
+        <h3>行星</h3>
+        <p>${randomPlanet.name} (${randomPlanet.symbol})</p>
+      `;
+
+      // 更新星座區塊
+      document.getElementById("zodiacBlock").innerHTML = `
+        <h3>星座</h3>
+        <p>${randomZodiac.name} (${randomZodiac.symbol})</p>
+      `;
+
+      // 更新宮位區塊
+      document.getElementById("houseBlock").innerHTML = `
+        <h3>宮位</h3>
+        <p>${randomHouse.name}</p>
+      `;
+    }
+
+    /*****************************************
+     * 3. 綁定按鈕事件：按下按鈕 => 擲骰
+     *****************************************/
+    document.getElementById("rollDiceButton").addEventListener("click", rollAstrologyDice);
+  </script>
+</body>
+</html>
